@@ -1,22 +1,31 @@
-import express from 'express';
-import mongoose from 'mongoose';
-import cors from 'cors';
+import express from "express";
+import mongoose from "mongoose";
+import cors from "cors";
+import path from "path";
+import { fileURLToPath } from "url";
+import dotenv from "dotenv";
+
+dotenv.config(); // load .env file
+
 const app = express();
 
 // Middleware
 app.use(express.json());
-app.use(express.static('public'));
-app.use(cors())
+app.use(cors());
 
 // MongoDB connection
-const MONGO_URI="mongodb+srv://root:GWxUsrnAM8dtGkD1@cluster-1.hdidlm6.mongodb.net/productsDB"
-mongoose.connect(MONGO_URI)
-.then(() => {
-  console.log('✅ Connected to MongoDB');
-}).catch((err) => {
-  console.log('❌ MongoDB connection error:', err);
-  console.log('Make sure MongoDB is running on your system');
-});
+const MONGO_URI =
+  process.env.MONGO_URI ||
+  "mongodb+srv://root:GWxUsrnAM8dtGkD1@cluster-1.hdidlm6.mongodb.net/productsDB";
+
+mongoose
+  .connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+  .then(() => {
+    console.log("✅ Connected to MongoDB");
+  })
+  .catch((err) => {
+    console.log("❌ MongoDB connection error:", err);
+  });
 
 // Product Schema
 const productSchema = new mongoose.Schema({
@@ -24,38 +33,34 @@ const productSchema = new mongoose.Schema({
   price: { type: Number, required: true },
   description: { type: String, required: true },
   category: { type: String, required: true },
-  image: { type: String }
+  image: { type: String },
 });
 
-const Product = mongoose.model('Product', productSchema);
+const Product = mongoose.model("Product", productSchema);
 
-// API Routes
-// In your Express backend route
-app.get('/api/products', async (req, res) => {
-  const search = req.query.search;
-  let query = {};
-  if (search) {
-    query = { name: { $regex: search, $options: 'i' } };
-  }
-  const products = await Product.find(query);
-  res.json(products);
-});
-// GET /api/products - Get all products
-app.get('/api/products', async (req, res) => {
+// ---------------- API ROUTES ----------------
+
+// GET /api/products (with optional search)
+app.get("/api/products", async (req, res) => {
   try {
-    const products = await Product.find();
+    const search = req.query.search;
+    let query = {};
+    if (search) {
+      query = { name: { $regex: search, $options: "i" } };
+    }
+    const products = await Product.find(query);
     res.json(products);
   } catch (error) {
-    res.status(500).json({ message: 'Error fetching products', error: error.message });
+    res.status(500).json({ message: "Error fetching products", error: error.message });
   }
 });
 
 // POST /api/products - Add new product
-app.post('/api/products', async (req, res) => {
+app.post("/api/products", async (req, res) => {
   try {
-    const { name, price, description, category, image } = req.body; // <-- Add image
+    const { name, price, description, category, image } = req.body;
     if (!name || !price || !description || !category) {
-      return res.status(400).json({ message: 'All fields are required' });
+      return res.status(400).json({ message: "All fields are required" });
     }
 
     const newProduct = new Product({
@@ -63,34 +68,46 @@ app.post('/api/products', async (req, res) => {
       price: parseFloat(price),
       description,
       category,
-      image // <-- Add image
+      image,
     });
 
     const savedProduct = await newProduct.save();
     res.status(201).json(savedProduct);
   } catch (error) {
-    res.status(500).json({ message: 'Error creating product', error: error.message });
+    res.status(500).json({ message: "Error creating product", error: error.message });
   }
 });
 
 // DELETE /api/products/:id - Delete product
-app.delete('/api/products/:id', async (req, res) => {
+app.delete("/api/products/:id", async (req, res) => {
   try {
     const { id } = req.params;
     const deletedProduct = await Product.findByIdAndDelete(id);
-    
+
     if (!deletedProduct) {
-      return res.status(404).json({ message: 'Product not found' });
+      return res.status(404).json({ message: "Product not found" });
     }
 
-    res.json({ message: 'Product deleted successfully', product: deletedProduct });
+    res.json({ message: "Product deleted successfully", product: deletedProduct });
   } catch (error) {
-    res.status(500).json({ message: 'Error deleting product', error: error.message });
+    res.status(500).json({ message: "Error deleting product", error: error.message });
   }
 });
 
-const PORT =5000;
+// ---------------- SERVE FRONTEND IN PRODUCTION ----------------
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+if (process.env.NODE_ENV === "production") {
+  app.use(express.static(path.join(__dirname, "dist")));
+
+  app.get("*", (req, res) => {
+    res.sendFile(path.join(__dirname, "dist", "index.html"));
+  });
+}
+
+// ---------------- START SERVER ----------------
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
-  console.log('📱 Open your browser and go to the URL above');
+  console.log(`🚀 Server running on port ${PORT}`);
 });
