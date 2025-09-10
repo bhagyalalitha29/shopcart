@@ -1,0 +1,111 @@
+#root {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+}
+
+.logo {
+  height: 6em;
+  padding: 1.5em;
+  will-change: filter;
+  transition: filter 300ms;
+}
+.logo:hover {
+  filter: drop-shadow(0 0 2em #646cffaa);
+}
+.logo.react:hover {
+  filter: drop-shadow(0 0 2em #61dafbaa);
+}
+
+@keyframes logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  a:nth-of-type(2) .logo {
+    animation: logo-spin infinite 20s linear;
+  }
+}
+
+.card {
+  padding: 2em;
+}
+
+.read-the-docs {
+  color: #888;
+}
+
+.app-bg {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #e9f5e1 0%, #b7e4c7 100%);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+.main-content {
+    padding: 40px 0 0 0;
+    min-height: 80vh;
+}
+.navbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 40px;
+    height: 70px;
+    background: rgba(38, 82, 53, 0.85);
+    box-shadow: 0 2px 16px rgba(38,82,53,0.10);
+    backdrop-filter: blur(8px);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+.navbar-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #e9f5e1;
+    font-weight: bold;
+    font-size: 1.5rem;
+}
+.navbar-logo img {
+    width: 36px;
+    height: 36px;
+}
+.navbar-links {
+    display: flex;
+    gap: 2rem;
+}
+.navbar-links a {
+    color: #e9f5e1;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 1.1rem;
+    border-radius: 20px;
+    padding: 8px 18px;
+    transition: background 0.2s, color 0.2s;
+}
+.navbar-links a.active,
+.navbar-links a:hover {
+    background: #b7e4c7;
+    color: #265235;
+}
+.loading {
+    color: #265235;
+    font-size: 1.2rem;
+    text-align: center;
+    margin-top: 60px;
+}
+.error {
+    color: #b22222;
+    background: #fff0f0;
+    border-radius: 12px;
+    padding: 12px 24px;
+    margin: 24px auto;
+    max-width: 400px;
+    text-align: center;
+    font-weight: 600;
+}

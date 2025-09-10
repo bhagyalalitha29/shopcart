@@ -1,0 +1,19 @@
+.active-link {
+  color: rgb(110, 142, 150);
+  font-weight: bold;
+  padding: 8px;
+  text-transform: capitalize;
+  letter-spacing: 2.5px;
+  padding-right:20px;
+  text-decoration: none;
+}
+
+.inactive-link {
+  color: rgb(116, 139, 145);
+  text-decoration: none;
+  padding: 8px;
+  text-transform: capitalize;
+  letter-spacing: 2.5px;
+  padding-right: 20px;
+  font-weight: 500;
+}
