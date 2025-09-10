@@ -1,38 +1,37 @@
 import { Link } from "react-router-dom";
+import { theme } from "../theme";
+import "../animations.css";
 
 export default function Home() {
   return (
     <div
       style={{
-        fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
-        background: "linear-gradient(135deg, #e9f5e1 0%, #b7e4c7 100%)",
         minHeight: "100vh",
         width: "100vw",
-        margin: 0,
-        padding: 0,
-        boxSizing: "border-box",
+        background: `linear-gradient(135deg, ${theme.background} 0%, ${theme.accent} 100%)`,
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
         overflow: "hidden",
       }}
     >
-      <section style={styles.banner}>
-        <div style={styles.bannerTextContainer}>
-          <h1 style={styles.bannerTitle}>
-            Get Upto <span style={styles.highlight}>50% Off</span>
-            <br />
-            <span style={styles.subTitle}>On Selected Items</span>
+      <section style={styles.hero}>
+        <div style={styles.left} className="fadeInUp">
+          <div style={styles.badge} className="popIn">70% OFF</div>
+          <h1 style={styles.title}>
+            <span style={styles.green}>Shop</span> Smarter<br />
+            <span style={styles.subtitle}>with Shopcart</span>
           </h1>
-          <div style={styles.buttonContainer}>
-            <Link style={styles.buyButton} to="/products">Buy Now</Link>
-          </div>
+          <p style={styles.desc}>
+            Discover the best deals on your favorite products. Enjoy a seamless shopping experience with exclusive discounts and a beautiful, modern interface.
+          </p>
+          <Link to="/products" style={styles.cta} className="popIn">Shop Now</Link>
         </div>
-        <div style={styles.imageContainer}>
+        <div style={styles.right} className="fadeInUp">
           <img
             src="https://pngimg.com/d/shopping_cart_PNG38.png"
             alt="Shopping Cart"
-            style={styles.bannerImage}
+            style={styles.image}
             draggable={false}
           />
         </div>
@@ -42,78 +41,91 @@ export default function Home() {
 }
 
 const styles = {
-  banner: {
+  hero: {
     display: "flex",
-    justifyContent: "center",
     alignItems: "center",
-    height: "100vh",
+    justifyContent: "center",
+    gap: "4rem",
     width: "100vw",
-    gap: "3rem",
+    maxWidth: 1400,
+    padding: "60px 32px 0 32px",
     flexWrap: "wrap",
-    padding: 0,
-    margin: 0,
-    overflow: "hidden",
+    animation: "fadeInUp 1s cubic-bezier(.4,0,.2,1)",
   },
-  bannerTextContainer: {
+  left: {
+    flex: 1,
+    minWidth: 340,
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "flex-start",
+    justifyContent: "center",
+    gap: 24,
+    animation: "fadeInUp 1.2s cubic-bezier(.4,0,.2,1)",
+  },
+  badge: {
+    background: theme.primary,
+    color: "#fff",
+    fontWeight: 700,
+    fontSize: "1.3rem",
+    borderRadius: 18,
+    padding: "8px 28px",
+    marginBottom: 18,
+    letterSpacing: 2,
+    boxShadow: theme.shadow,
+    animation: "popIn 0.7s cubic-bezier(.4,0,.2,1)",
+  },
+  title: {
+    fontSize: "3.2rem",
+    fontWeight: 800,
+    color: theme.text,
+    margin: 0,
+    lineHeight: 1.1,
+  },
+  green: {
+    color: theme.primary,
+  },
+  subtitle: {
+    color: theme.secondary,
+    fontWeight: 600,
+    fontSize: "2.1rem",
+  },
+  desc: {
+    color: theme.text,
+    fontSize: "1.2rem",
+    margin: "18px 0 32px 0",
+    maxWidth: 480,
+    lineHeight: 1.5,
+  },
+  cta: {
+    background: theme.secondary,
+    color: "#fff",
+    border: "none",
+    borderRadius: 25,
+    padding: "16px 48px",
+    fontSize: "1.3rem",
+    fontWeight: 700,
+    textDecoration: "none",
+    boxShadow: theme.shadow,
+    cursor: "pointer",
+    transition: "background 0.2s, transform 0.2s",
+    marginTop: 10,
+    display: "inline-block",
+  },
+  right: {
     flex: 1,
     minWidth: 320,
     display: "flex",
-    flexDirection: "column",
     alignItems: "center",
     justifyContent: "center",
+    animation: "fadeInUp 1.4s cubic-bezier(.4,0,.2,1)",
   },
-  bannerTitle: {
-    fontSize: "2.7rem",
-    fontWeight: "bold",
-    color: "#265235",
-    textAlign: "center",
-    marginBottom: 0,
-    lineHeight: 1.2,
-  },
-  highlight: {
-    color: "#43a047",
-    fontSize: "3.2rem",
-    fontWeight: "bold",
-    letterSpacing: 2,
-  },
-  subTitle: {
-    color: "#265235",
-    fontSize: "2rem",
-    fontWeight: 500,
-    letterSpacing: 1,
-  },
-  buttonContainer: {
-    display: "flex",
-    justifyContent: "center",
+  image: {
+    maxWidth: 400,
     width: "100%",
-    marginTop: 30,
-  },
-  buyButton: {
-    background: "#265235",
-    color: "white",
-    border: "none",
-    borderRadius: 25,
-    padding: "14px 40px",
-    cursor: "pointer",
-    fontSize: "1.2rem",
-    fontWeight: 600,
-    transition: "background 0.2s",
-    boxShadow: "none", // Removed shine
-    textDecoration: "none",
-  },
-  imageContainer: {
-    flex: 1,
-    minWidth: 300,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  bannerImage: {
-    maxWidth: 340,
-    width: "100%",
-    borderRadius: 30,
+    borderRadius: 32,
     userSelect: "none",
     background: "transparent",
-    boxShadow: "0 8px 16px rgba(0, 0, 0, 0.2)", // Subtle shadow
+    boxShadow: theme.shadow,
+    animation: "popIn 1.2s cubic-bezier(.4,0,.2,1)",
   },
 };

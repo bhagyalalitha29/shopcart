@@ -1,14 +1,73 @@
+import { useState } from "react";
+import { theme } from "../theme";
+import "../animations.css";
+
+const MAX_DESC_LENGTH = 70;
+
 export default function ProductCard({ product, onDelete, onEdit }) {
+    const [showConfirm, setShowConfirm] = useState(false);
+    const [showView, setShowView] = useState(false);
+    const [showEdit, setShowEdit] = useState(false);
+    const [editData, setEditData] = useState({ ...product });
+
     const handleDeleteClick = () => {
+        setShowConfirm(true);
+    };
+
+    const handleViewClick = () => {
+        setShowView(true);
+    };
+
+    const handleCloseView = () => {
+        setShowView(false);
+    };
+
+    const handleConfirmDelete = () => {
+        setShowConfirm(false);
         onDelete(product);
     };
 
-    const handleEditClick = () => {
-        if (onEdit) onEdit(product);
+    const handleCancelDelete = () => {
+        setShowConfirm(false);
     };
 
+    const handleEditClick = (e) => {
+        e.stopPropagation();
+        setEditData({ ...product });
+        setShowEdit(true);
+    };
+    const handleEditChange = (e) => {
+        const { name, value } = e.target;
+        setEditData(prev => ({ ...prev, [name]: value }));
+    };
+    const handleEditSave = async (e) => {
+        e.preventDefault();
+        setShowEdit(false);
+        // Update database
+        const dataToSend = { ...editData, price: Number(editData.price) };
+        await fetch(`https://shopcart-paisawapas.onrender.com/api/products/${product._id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(dataToSend)
+        });
+        if (onEdit) onEdit(dataToSend);
+    };
+    const handleEditCancel = () => setShowEdit(false);
+
+    const truncatedDesc = product.description && product.description.length > MAX_DESC_LENGTH
+        ? product.description.slice(0, MAX_DESC_LENGTH) + '... '
+        : product.description;
+    const showMore = product.description && product.description.length > MAX_DESC_LENGTH;
+
     return (
-        <div style={styles.card}>
+        <div
+            style={styles.card}
+            className="popIn"
+            onClick={(e) => {
+                if (e.target.tagName !== 'BUTTON') handleViewClick();
+            }}
+        >
+            <div style={styles.glassOverlay}></div>
             <div style={styles.imageSection}>
                 <img
                   src={product.image && product.image.trim() !== "" ? product.image : "https://via.placeholder.com/120x120?text=No+Image"}
@@ -18,13 +77,81 @@ export default function ProductCard({ product, onDelete, onEdit }) {
             <div style={styles.infoSection}>
                 <div style={styles.category}>{product.category}</div>
                 <div style={styles.name}>{product.name}</div>
-                <div style={styles.description}>{product.description}</div>
+                <div style={styles.description}>
+                  {truncatedDesc}
+                  {showMore && (
+                    <span style={styles.more} onClick={handleViewClick}>more</span>
+                  )}
+                </div>
                 <div style={styles.price}>${product.price}</div>
                 <div style={styles.actions}>
+                    {/* <button style={styles.viewBtn} onClick={handleViewClick}>View</button> */}
                     <button style={styles.editBtn} onClick={handleEditClick}>Edit</button>
                     <button style={styles.deleteBtn} onClick={handleDeleteClick}>Delete</button>
                 </div>
             </div>
+            {showConfirm && (
+                <div style={styles.overlay} className="fadeInUp">
+                    <div style={styles.confirmBox}>
+                        <div style={{ marginBottom: 18, fontWeight: 700, fontSize: '1.15rem', textAlign: 'center' }}>
+                            Are you sure you want to delete <span style={{color: theme.danger}}>{product.name}</span>?
+                        </div>
+                        <div style={{ display: 'flex', gap: 16 }}>
+                            <button style={styles.confirmBtn} onClick={handleConfirmDelete}>Yes</button>
+                            <button style={styles.cancelBtn} onClick={handleCancelDelete}>No</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+            {showView && (
+                <div style={styles.viewOverlay} className="fadeInUp">
+                  <div style={styles.viewGlass}>
+                    <div style={styles.viewLeftImgWrap}>
+                      <img
+                        src={product.image && product.image.trim() !== "" ? product.image : "https://via.placeholder.com/200x200?text=No+Image"}
+                        alt={product.name}
+                        style={styles.viewImage}
+                      />
+                    </div>
+                    <div style={styles.viewDetails}>
+                      <h2 style={styles.viewName}>{product.name}</h2>
+                      <div style={styles.viewCategory}>{product.category}</div>
+                      <div style={styles.viewPrice}>${product.price}</div>
+                      <div style={styles.viewDesc}>{product.description}</div>
+                      <button style={styles.closeBtn} onClick={handleCloseView}>Close</button>
+                    </div>
+                  </div>
+                </div>
+            )}
+            {showEdit && (
+                <div style={styles.overlay} className="fadeInUp">
+                  <div style={styles.editBoxWider}>
+                    <h2 style={{marginBottom: 18, color: theme.primary}}>Edit Product</h2>
+                    <form style={styles.editForm} onSubmit={async (e) => {
+                      e.preventDefault();
+                      setShowEdit(false);
+                      // Update database
+                      const dataToSend = { ...editData, price: Number(editData.price) };
+                      await fetch(`https://shopcart-paisawapas.onrender.com/api/products/${product._id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(dataToSend)
+                      });
+                      if (onEdit) onEdit(dataToSend);
+                    }}>
+                      <div style={styles.editRow}><label style={styles.editLabel}>Product Name</label><input name="name" value={editData.name} onChange={handleEditChange} style={styles.editInput} placeholder="Name" required /></div>
+                      <div style={styles.editRow}><label style={styles.editLabel}>Price</label><input name="price" value={editData.price} onChange={handleEditChange} style={styles.editInput} placeholder="Price" type="number" required /></div>
+                      <div style={styles.editRow}><label style={styles.editLabel}>Category</label><input name="category" value={editData.category} onChange={handleEditChange} style={styles.editInput} placeholder="Category" required /></div>
+                      <div style={styles.editRow}><label style={styles.editLabel}>Description</label><textarea name="description" value={editData.description} onChange={handleEditChange} style={{...styles.editInput, minHeight: 90, fontSize: '1.13rem'}} placeholder="Description" required /></div>
+                      <div style={styles.editRow}><label style={styles.editLabel}>Image URL</label><input name="image" value={editData.image} onChange={handleEditChange} style={styles.editInput} placeholder="Image URL" /></div>
+                      <div style={{display: 'flex', gap: 18, marginTop: 32, justifyContent: 'center'}}>
+                        <button style={styles.confirmBtn} type="submit">Save</button>
+                        <button style={styles.cancelBtn} type="button" onClick={handleEditCancel}>Cancel</button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+            )}
         </div>
     );
 }
@@ -33,100 +160,358 @@ const styles = {
     card: {
         display: "flex",
         flexDirection: "column",
-        background: "rgba(255,255,255,0.85)",
-        borderRadius: 18,
-        boxShadow: "0 4px 16px rgba(38,82,53,0.10)",
-        width: 260,
-        minHeight: 380,
-        margin: 16,
+        background: theme.card,
+        borderRadius: 22,
+        boxShadow: theme.shadow,
+        width: 270,
+        margin: 12,
         overflow: "hidden",
-        transition: "box-shadow 0.2s",
-        border: "1px solid #e0e0e0",
+        transition: "transform 0.18s, box-shadow 0.18s",
+        animation: "popIn 0.7s cubic-bezier(.4,0,.2,1)",
+        cursor: "pointer",
         position: "relative",
     },
-    imageSection: {
+    glassOverlay: {
+        position: "absolute",
+        top: 0,
+        left: 0,
         width: "100%",
-        height: 160,
-        background: "#f6fff6",
+        height: "100%",
+        background: "rgba(46,125,50,0.10)",
+        backdropFilter: "blur(6px)",
+        zIndex: 0,
+        pointerEvents: "none",
+        borderRadius: 22,
+    },
+    imageSection: {
+        background: theme.muted,
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        borderBottom: "1px solid #e0e0e0",
+        height: 170,
+        borderBottom: `2px solid ${theme.accent}`,
+        minHeight: 170,
+        maxHeight: 170,
+        zIndex: 1,
     },
     image: {
-        maxWidth: "90%",
-        maxHeight: 140,
-        objectFit: "contain",
-        borderRadius: 12,
+        maxWidth: 120,
+        maxHeight: 120,
+        borderRadius: 16,
+        objectFit: "cover",
+        boxShadow: "0 2px 12px rgba(67,160,71,0.10)",
         background: "#fff",
+        margin: 12,
     },
     infoSection: {
-        padding: "18px 16px 12px 16px",
+        flex: 1,
         display: "flex",
         flexDirection: "column",
-        flex: 1,
-        justifyContent: "space-between",
+        alignItems: "flex-start",
+        padding: 18,
+        gap: 8,
+        overflow: "visible",
+        zIndex: 1,
+        paddingBottom: 24,
     },
     category: {
-        color: "#43a047",
-        fontSize: 13,
+        color: theme.secondary,
         fontWeight: 600,
-        marginBottom: 4,
-        textTransform: "uppercase",
-        letterSpacing: 1,
+        fontSize: "1rem",
+        marginBottom: 2,
+        textTransform: "capitalize",
     },
     name: {
-        fontSize: 18,
+        color: theme.primary,
         fontWeight: 700,
-        color: "#265235",
-        marginBottom: 8,
-        minHeight: 24,
-        lineHeight: 1.2,
-    },
-    description: {
-        fontSize: 14,
-        color: "#444",
-        marginBottom: 12,
-        minHeight: 40,
+        fontSize: "1.25rem",
+        marginBottom: 4,
+        whiteSpace: "nowrap",
         overflow: "hidden",
         textOverflow: "ellipsis",
-        display: "-webkit-box",
-        WebkitLineClamp: 2,
-        WebkitBoxOrient: "vertical",
+        width: "100%",
+    },
+    description: {
+        color: theme.text,
+        fontSize: "0.98rem",
+        marginBottom: 12,
+        minHeight: 40,
+        maxHeight: "none",
+        overflow: "visible",
+        textOverflow: "ellipsis",
+        width: "100%",
+    },
+    more: {
+        color: theme.primary,
+        fontWeight: 700,
+        cursor: "pointer",
+        marginLeft: 4,
+        fontSize: "0.98rem",
+        textDecoration: "underline",
     },
     price: {
-        fontSize: 18,
+        color: theme.primary,
         fontWeight: 700,
-        color: "#388e3c",
-        marginBottom: 16,
+        fontSize: "1.1rem",
+        margin: "8px 0",
     },
     actions: {
         display: "flex",
-        justifyContent: "space-between",
-        gap: 10,
+        gap: 12,
+        marginTop: 10,
+        width: "100%",
+        justifyContent: "center",
+        zIndex: 2,
+    },
+    viewBtn: {
+        background: "linear-gradient(90deg, #43e97b 0%, #38f9d7 100%)",
+        color: "#1b3c23",
+        border: "none",
+        borderRadius: 16,
+        padding: "10px 28px",
+        fontWeight: 800,
+        fontSize: "1.08rem",
+        letterSpacing: 1,
+        cursor: "pointer",
+        boxShadow: "0 2px 8px rgba(67,160,71,0.10)",
+        transition: "background 0.2s, color 0.2s, transform 0.2s",
     },
     editBtn: {
-        background: "#b7e4c7",
-        color: "#265235",
-        border: "none",
+        background: 'linear-gradient(90deg, #6bd38eff 0%,  #55b174ff 100%)',
+        color: '#fff',
+        border: 'none',
         borderRadius: 16,
-        padding: "7px 18px",
-        fontWeight: 600,
-        fontSize: 14,
-        cursor: "pointer",
+        padding: '10px 28px',
+        fontWeight: 800,
+        fontSize: '1.08rem',
         letterSpacing: 1,
-        transition: "background 0.2s",
+        cursor: 'pointer',
+        boxShadow: '0 2px 8px rgba(67,160,71,0.13)',
+        transition: 'background 0.2s, color 0.2s, transform 0.2s',
     },
     deleteBtn: {
-        background: "#265235",
+        background: 'linear-gradient(90deg, #f15439ff 0%, #f02b2bff 100%)',
+        color: 'whitesmoke',
+        border: 'none',
+        borderRadius: 16,
+        padding: '10px 28px',
+        fontWeight: 800,
+        fontSize: '1.08rem',
+        letterSpacing: 1,
+        cursor: 'pointer',
+        boxShadow: '0 2px 8px rgba(67,160,71,0.13)',
+        transition: 'background 0.2s, color 0.2s, transform 0.2s',
+    },
+    overlay: {
+        position: "fixed",
+        top: 0,
+        left: 0,
+        width: "100vw",
+        height: "100vh",
+        background: "rgba(38,82,53,0.45)",
+        color: "#fff",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        zIndex: 1000,
+        animation: "fadeInUp 0.4s cubic-bezier(.4,0,.2,1)",
+        backdropFilter: "blur(8px)",
+    },
+    confirmBox: {
+        background: "#fffbe9", // cream theme
+        color: theme.text,
+        borderRadius: 28,
+        padding: "38px 54px",
+        boxShadow: theme.shadow,
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        minWidth: 340,
+        maxWidth: 420,
+    },
+    confirmBtn: {
+        background: theme.danger,
         color: "#fff",
         border: "none",
-        borderRadius: 16,
-        padding: "7px 18px",
-        fontWeight: 600,
-        fontSize: 14,
+        borderRadius: 14,
+        padding: "7px 22px",
+        fontWeight: 700,
         cursor: "pointer",
-        letterSpacing: 1,
+        fontSize: "1rem",
         transition: "background 0.2s",
+    },
+    cancelBtn: {
+        background: theme.accent,
+        color: theme.primary,
+        border: "none",
+        borderRadius: 14,
+        padding: "7px 22px",
+        fontWeight: 700,
+        cursor: "pointer",
+        fontSize: "1rem",
+        transition: "background 0.2s",
+    },
+    viewOverlay: {
+        position: "fixed",
+        top: 0,
+        left: 0,
+        width: "100vw",
+        height: "100vh",
+        background: "rgba(38,82,53,0.45)",
+        zIndex: 1000,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        animation: "fadeInUp 0.5s cubic-bezier(.4,0,.2,1)",
+        backdropFilter: "blur(8px)",
+    },
+    viewGlass: {
+        display: "flex",
+        flexDirection: "row",
+        background: "#fffbe9", // cream theme
+        boxShadow: theme.shadow,
+        borderRadius: 28,
+        backdropFilter: "blur(16px)",
+        padding: "36px 48px",
+        minWidth: 520,
+        maxWidth: 700,
+        minHeight: 320,
+        alignItems: "center",
+        gap: 36,
+    },
+    viewLeftImgWrap: {
+        flex: 1,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        minWidth: 180,
+        maxWidth: 220,
+    },
+    viewImage: {
+        width: 180,
+        height: 180,
+        borderRadius: 20,
+        objectFit: "cover",
+        boxShadow: theme.shadow,
+        background: "#fff",
+    },
+    viewDetails: {
+        flex: 2,
+        display: "flex",
+        flexDirection: "column",
+        gap: 16,
+        minWidth: 220,
+        color: theme.text,
+    },
+    viewName: {
+        fontSize: "2rem",
+        fontWeight: 800,
+        color: theme.primary,
+        margin: 0,
+    },
+    viewCategory: {
+        color: theme.secondary,
+        fontWeight: 600,
+        fontSize: "1.1rem",
+        marginBottom: 2,
+        textTransform: "capitalize",
+    },
+    viewPrice: {
+        color: theme.primary,
+        fontWeight: 700,
+        fontSize: "1.3rem",
+        margin: "8px 0",
+    },
+    viewDesc: {
+        color: theme.text,
+        fontSize: "1.1rem",
+        marginBottom: 6,
+        whiteSpace: "pre-line",
+    },
+    closeBtn: {
+        background: theme.secondary,
+        color: "#fff",
+        border: "none",
+        borderRadius: 14,
+        padding: "8px 28px",
+        fontWeight: 700,
+        cursor: "pointer",
+        fontSize: "1.1rem",
+        marginTop: 18,
+        alignSelf: "flex-end",
+        transition: "background 0.2s",
+    },
+    editBox: {
+        background: 'rgba(255,255,255,0.97)',
+        color: theme.text,
+        borderRadius: 32,
+        padding: '48px 64px',
+        boxShadow: '0 8px 32px 0 rgba(34,139,34,0.18)',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        minWidth: 420,
+        maxWidth: 600,
+        width: 520,
+        backdropFilter: 'blur(12px)',
+        border: '1.5px solid #b7e4c7',
+        animation: 'fadeInUp 0.6s cubic-bezier(.4,0,.2,1)',
+    },
+    editBoxWider: {
+        background: 'rgba(255,255,255,0.97)',
+        color: theme.text,
+        borderRadius: 32,
+        padding: '48px 0 48px 0',
+        boxShadow: '0 8px 32px 0 rgba(34,139,34,0.18)',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        minWidth: 800,
+        maxWidth: 1000,
+        width: 900,
+        backdropFilter: 'blur(12px)',
+        border: '1.5px solid #b7e4c7',
+        animation: 'fadeInUp 0.6s cubic-bezier(.4,0,.2,1)',
+    },
+    editForm: {
+        width: '100%',
+        padding: '0 64px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 18,
+    },
+    editRow: {
+        display: 'flex',
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 24,
+        marginBottom: 0,
+        width: '100%',
+    },
+    editLabel: {
+        color: theme.secondary,
+        fontWeight: 700,
+        fontSize: '1.08rem',
+        minWidth: 160,
+        marginBottom: 0,
+        letterSpacing: 0.5,
+        marginTop: 0,
+        textAlign: 'right',
+        flexShrink: 0,
+    },
+    editInput: {
+        background: '#f5fef7',
+        border: '1.5px solid #b7e4c7',
+        borderRadius: 16,
+        padding: '14px 18px',
+        fontSize: '1.13rem',
+        color: theme.text,
+        fontWeight: 600,
+        outline: 'none',
+        transition: 'border 0.2s, box-shadow 0.2s',
+        boxShadow: '0 1.5px 8px 0 rgba(67,160,71,0.09)',
+        width: '100%',
+        marginLeft: 0,
     },
 };

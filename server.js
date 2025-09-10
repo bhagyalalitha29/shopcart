@@ -78,6 +78,35 @@ app.post("/api/products", async (req, res) => {
   }
 });
 
+// PUT /api/products/:id - Update product
+app.put("/api/products/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, price, description, category, image } = req.body;
+    console.log(req.body)
+    if (!name || !price || !description || !category) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+    const updatedProduct = await Product.findByIdAndUpdate(
+      id,
+      {
+        name,
+        price: parseFloat(price),
+        description,
+        category,
+        image:"",
+      },
+      { new: true, runValidators: true }
+    );
+    if (!updatedProduct) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+    res.json(updatedProduct);
+  } catch (error) {
+    res.status(500).json({ message: "Error updating product", error: error.message });
+  }
+});
+
 // DELETE /api/products/:id - Delete product
 app.delete("/api/products/:id", async (req, res) => {
   try {
