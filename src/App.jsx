@@ -18,7 +18,7 @@ export default function App() {
     const fetchProducts = async () => {
         try {
             setLoading(true);
-            let url = 'http://localhost:5000/api/products';
+            let url = 'https://shopcart-paisawapas.onrender.com/api/products';
             if (search) {
                 url += `?search=${encodeURIComponent(search)}`;
             }

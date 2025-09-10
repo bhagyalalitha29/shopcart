@@ -29,7 +29,7 @@ export default function ProductList({ products, onDeleteProduct }) {
   }, [products, search, sort, category]);
 
   const handleDelete = async (id) => {
-    await fetch(`http://localhost:5000/api/products/${id}`, { method: "DELETE" });
+    await fetch(`https://shopcart-paisawapas.onrender.com/api/products/${id}`, { method: "DELETE" });
     onDeleteProduct(id);
     setDeleteId(null);
   };
