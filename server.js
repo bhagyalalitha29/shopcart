@@ -59,7 +59,7 @@ app.get("/api/products", async (req, res) => {
 app.post("/api/products", async (req, res) => {
   try {
     const { name, price, description, category, image } = req.body;
-    if (!name || !price || !description || !category) {
+    if (!name || !price || !description || !category || !image) {
       return res.status(400).json({ message: "All fields are required" });
     }
 
@@ -84,7 +84,7 @@ app.put("/api/products/:id", async (req, res) => {
     const { id } = req.params;
     const { name, price, description, category, image } = req.body;
     console.log(req.body)
-    if (!name || !price || !description || !category) {
+    if (!name || !price || !description || !category || !image) {
       return res.status(400).json({ message: "All fields are required" });
     }
     const updatedProduct = await Product.findByIdAndUpdate(

@@ -23,8 +23,12 @@ export default function AddProductForm ({ onProductAdded }){
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!formData.name || !formData.price || !formData.description || !formData.category) {
+        if (!formData.name || !formData.price || !formData.description || !formData.category || !formData.image) {
             setMessage('All fields are required');
+            return;
+        }
+        if (isNaN(Number(formData.price)) || Number(formData.price) <= 0) {
+            setMessage('Price must be greater than 0');
             return;
         }
         setIsSubmitting(true);
@@ -55,76 +59,83 @@ export default function AddProductForm ({ onProductAdded }){
     };
 
     return (
-        <div style={styles.formWrap}>
-            <h2 style={styles.heading}>➕ Add New Product</h2>
-            {message && (
-                <div style={message.includes('✅') ? styles.success : styles.error}>
-                    {message}
-                </div>
-            )}
-            <form onSubmit={handleSubmit} style={styles.form} autoComplete="off">
-                <div style={styles.row}>
+        <div style={{ maxHeight: "90vh", overflowY: "auto", scrollbarWidth: "none", msOverflowStyle: "none" }}>
+            <style>{`.add-product-form::-webkit-scrollbar { display: none; }`}</style>
+            <div className="add-product-form" style={styles.formWrap}>
+                <h2 style={styles.heading}>Add New Product</h2>
+                {message && (
+                    <div style={message.includes('✅') ? styles.success : styles.error}>
+                        {message}
+                    </div>
+                )}
+                <form onSubmit={handleSubmit} style={styles.form} autoComplete="off">
+                    <div style={styles.row}>
+                        <div style={styles.group}>
+                            <label style={styles.label}>Product Name:</label>
+                            <input
+                                type="text"
+                                name="name"
+                                value={formData.name}
+                                onChange={handleChange}
+                                placeholder="Enter product name"
+                                style={styles.input}
+                            
+                            />
+                        </div>
+                        <div style={styles.group}>
+                            <label style={styles.label}>Price ($):</label>
+                            <input
+                                type="number"
+                                step="0.01"
+                                name="price"
+                                value={formData.price}
+                                onChange={handleChange}
+                                placeholder="0.00"
+                                style={styles.input}
+                            
+                            />
+                        </div>
+                    </div>
                     <div style={styles.group}>
-                        <label style={styles.label}>Product Name:</label>
+                        <label style={styles.label}>Category:</label>
+                        <select name="category" value={formData.category} onChange={handleChange} style={styles.input}>
+                            <option value="">Select Category</option>
+                            <option value="Electronics">Electronics</option>
+                            <option value="Clothing">Clothing</option>
+                            <option value="Books">Books</option>
+                            <option value="Home">Home</option>
+                            <option value="Sports">Sports</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div style={styles.group}>
+                        <label style={styles.label}>Description:</label>
+                        <textarea
+                            name="description"
+                            value={formData.description}
+                            onChange={handleChange}
+                            placeholder="Enter product description"
+                        
+                            style={{...styles.input, minHeight: 70, resize: 'vertical'}}
+                        ></textarea>
+                    </div>
+                    <div style={styles.group}>
+                        <label style={styles.label}>Image URL:</label>
                         <input
                             type="text"
-                            name="name"
-                            value={formData.name}
+                            name="image"
+                            value={formData.image}
                             onChange={handleChange}
-                            placeholder="Enter product name"
+                            placeholder="Paste image URL"
                             style={styles.input}
+                        
                         />
                     </div>
-                    <div style={styles.group}>
-                        <label style={styles.label}>Price ($):</label>
-                        <input
-                            type="number"
-                            step="0.01"
-                            name="price"
-                            value={formData.price}
-                            onChange={handleChange}
-                            placeholder="0.00"
-                            style={styles.input}
-                        />
-                    </div>
-                </div>
-                <div style={styles.group}>
-                    <label style={styles.label}>Category:</label>
-                    <select name="category" value={formData.category} onChange={handleChange} style={styles.input}>
-                        <option value="">Select Category</option>
-                        <option value="Electronics">Electronics</option>
-                        <option value="Clothing">Clothing</option>
-                        <option value="Books">Books</option>
-                        <option value="Home">Home</option>
-                        <option value="Sports">Sports</option>
-                        <option value="Other">Other</option>
-                    </select>
-                </div>
-                <div style={styles.group}>
-                    <label style={styles.label}>Description:</label>
-                    <textarea
-                        name="description"
-                        value={formData.description}
-                        onChange={handleChange}
-                        placeholder="Enter product description"
-                        style={{...styles.input, minHeight: 70, resize: 'vertical'}}
-                    ></textarea>
-                </div>
-                <div style={styles.group}>
-                    <label style={styles.label}>Image URL:</label>
-                    <input
-                        type="text"
-                        name="image"
-                        value={formData.image}
-                        onChange={handleChange}
-                        placeholder="Paste image URL"
-                        style={styles.input}
-                    />
-                </div>
-                <button type="submit" style={styles.submitBtn} disabled={isSubmitting}>
-                    {isSubmitting ? '⏳ Adding Product...' : '➕ Add Product'}
-                </button>
-            </form>
+                    <button type="submit" style={styles.submitBtn} disabled={isSubmitting}>
+                        {isSubmitting ? '⏳ Adding Product...' : '➕ Add Product'}
+                    </button>
+                </form>
+            </div>
         </div>
     );
 }
@@ -184,6 +195,7 @@ const styles = {
         outline: "none",
         transition: "border 0.2s, box-shadow 0.2s",
         boxShadow: "0 1.5px 8px 0 rgba(67,160,71,0.07)",
+        marginRight: 38, // space for arrow
     },
     submitBtn: {
         background: "linear-gradient(90deg, #43e97b 0%, #38f9d7 100%)",

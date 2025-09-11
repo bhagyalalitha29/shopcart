@@ -2,11 +2,12 @@ import React, { useState, useMemo } from "react";
 import ProductCard from "./ProductCard";
 import "../animations.css";
 
-export default function ProductList({ products, onDeleteProduct }) {
+export default function ProductList({ products, onDeleteProduct, onEditProduct, loading }) {
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState("");
   const [category, setCategory] = useState("");
   const [deleteId, setDeleteId] = useState(null);
+  const [error, setError] = useState("");
 
   const categories = useMemo(
     () => [...new Set(products.map((p) => p.category))],
@@ -15,25 +16,64 @@ export default function ProductList({ products, onDeleteProduct }) {
 
   const filtered = useMemo(() => {
     let filtered = [...products];
-    if (search)
-      filtered = filtered.filter((p) =>
-        p.name.toLowerCase().includes(search.toLowerCase())
-      );
-    if (category) filtered = filtered.filter((p) => p.category === category);
-    if (sort === "low") filtered.sort((a, b) => a.price - b.price);
-    if (sort === "high") filtered.sort((a, b) => b.price - a.price);
-    if (sort === "alpha")
-      filtered.sort((a, b) => a.name.localeCompare(b.name));
-    if (sort === "newest") filtered.sort((a, b) => b._id.localeCompare(a._id));
-    if (sort === "oldest") filtered.sort((a, b) => a._id.localeCompare(b._id));
+    try {
+      if (search)
+        filtered = filtered.filter((p) =>
+          p.name.toLowerCase().includes(search.toLowerCase())
+        );
+      if (category) filtered = filtered.filter((p) => p.category === category);
+      if (sort === "low") filtered.sort((a, b) => a.price - b.price);
+      if (sort === "high") filtered.sort((a, b) => b.price - a.price);
+      if (sort === "alpha")
+        filtered.sort((a, b) => a.name.localeCompare(b.name));
+      if (sort === "newest") filtered.sort((a, b) => b._id.localeCompare(a._id));
+      if (sort === "oldest") filtered.sort((a, b) => a._id.localeCompare(b._id));
+    } catch (e) {
+      setError("Error filtering products");
+    }
     return filtered;
   }, [products, search, sort, category]);
 
   const handleDelete = async (id) => {
-    await fetch(`https://shopcart-paisawapas.onrender.com/api/products/${id}`, { method: "DELETE" });
-    onDeleteProduct(id);
-    setDeleteId(null);
+    try {
+      await fetch(`https://shopcart-paisawapas.onrender.com/api/products/${id}`, { method: "DELETE" });
+      onDeleteProduct(id);
+      setDeleteId(null);
+    } catch (e) {
+      setError("Error deleting product");
+    }
   };
+
+
+  if (loading) {
+    return (
+      <div style={spinnerOverlayStyle}>
+        <div className="spinner-pro" style={spinnerStyle}></div>
+        <style>{`
+          .spinner-pro {
+            border: 4px solid #e0ffe7;
+            border-top: 4px solid #43e97b;
+            border-radius: 50%;
+            width: 48px;
+            height: 48px;
+            animation: spin 1s linear infinite;
+          }
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+        `}</style>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="empty-state fadeInUp" style={{color: 'red', textAlign: 'center', margin: 40}}>
+        <h3>⚠️ {error}</h3>
+      </div>
+    );
+  }
 
   if (products.length === 0) {
     return (
@@ -43,32 +83,61 @@ export default function ProductList({ products, onDeleteProduct }) {
       </div>
     );
   }
+const spinnerOverlayStyle = {
+  position: 'fixed',
+  top: 0,
+  left: 0,
+  width: '100vw',
+  height: '100vh',
+  background: 'rgba(255,255,255,0.7)',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  zIndex: 2000,
+};
+
+const spinnerStyle = {
+  display: 'block',
+  margin: '0 auto',
+};
 
   return (
-    <>
+    <div>
       <div style={selectBar}>
-        <select
-          value={category}
-          onChange={(e) => setCategory(e.target.value)}
-          style={inputStyle}
-        >
-          <option value="">All Categories</option>
-          {categories.map((c) => (
-            <option key={c}>{c}</option>
-          ))}
-        </select>
-        <select
-          value={sort}
-          onChange={(e) => setSort(e.target.value)}
-          style={inputStyle}
-        >
-          <option value="">Sort By</option>
-          <option value="low">Price: Low to High</option>
-          <option value="high">Price: High to Low</option>
-          <option value="alpha">Alphabetical</option>
-          <option value="newest">Newest</option>
-          <option value="oldest">Oldest</option>
-        </select>
+        <div style={{position:'relative',display:'inline-block'}}>
+          <select
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            style={inputStyle}
+          >
+            <option value="">All Categories</option>
+            {categories.map((c) => (
+              <option key={c}>{c}</option>
+            ))}
+          </select>
+          {/* Filter icon */}
+          <span style={{position:'absolute',right:12,top:'50%',transform:'translateY(-50%)',pointerEvents:'none',margin:'5px 5px 0 10px'}}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 5h18M6 10h12M9 15h6" stroke="#265235" strokeWidth="2" strokeLinecap="round"/></svg>
+          </span>
+        </div>
+        <div style={{position:'relative',display:'inline-block'}}>
+          <select
+            value={sort}
+            onChange={(e) => setSort(e.target.value)}
+            style={inputStyle}
+          >
+            <option value="">Sort By</option>
+            <option value="low">Price: Low to High</option>
+            <option value="high">Price: High to Low</option>
+            <option value="alpha">Alphabetical</option>
+            <option value="newest">Newest</option>
+            <option value="oldest">Oldest</option>
+          </select>
+          {/* Sort icon */}
+          <span style={{position:'absolute',right:12,top:'50%',transform:'translateY(-50%)',pointerEvents:'none',paddingRight:'10px'}}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5" stroke="#265235" strokeWidth="2" strokeLinecap="round"/></svg>
+          </span>
+        </div>
       </div>
       <div
         className="fadeInUp"
@@ -83,7 +152,8 @@ export default function ProductList({ products, onDeleteProduct }) {
           overflowY: "auto",
           scrollbarWidth: "none", // Firefox
           msOverflowStyle: "none", // IE/Edge
-          padding: "10px 22px 10px 46px", // equal left and right
+          padding: "10px 22px 60px 46px", // extra bottom padding
+          marginBottom: 40,
         }}
       >
         {filtered.map((product) => (
@@ -91,8 +161,11 @@ export default function ProductList({ products, onDeleteProduct }) {
             key={product._id}
             product={product}
             onDelete={() => handleDelete(product._id)}
+            onEdit={(updatedProduct) => onEditProduct && onEditProduct(updatedProduct)}
           />
         ))}
+        {/* Extra space below products */}
+        <div style={{ gridColumn: '1 / -1', height: 40 }}></div>
       </div>
       <style>{`
         .fadeInUp::-webkit-scrollbar { display: none; }
@@ -131,7 +204,7 @@ export default function ProductList({ products, onDeleteProduct }) {
           background-size: 18px 18px;
         }
       `}</style>
-    </>
+    </div>
   );
 }
 
@@ -150,7 +223,7 @@ const selectBar = {
 };
 
 const inputStyle = {
-  padding: "10px 18px",
+  padding: "10px 30px",
   borderRadius: 18,
   border: "1.5px solid #b7e4c7",
   fontSize: "1.08rem",
@@ -160,7 +233,7 @@ const inputStyle = {
   color: "#265235",
   fontWeight: 600,
   boxShadow: "0 1.5px 8px 0 rgba(67,160,71,0.09)",
-  marginRight: 8,
+  marginRight: 10,
   marginBottom: 0,
   transition: "border 0.2s, box-shadow 0.2s",
 };

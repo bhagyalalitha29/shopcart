@@ -23,7 +23,7 @@ export default function Home() {
             <span style={styles.subtitle}>with Shopcart</span>
           </h1>
           <p style={styles.desc}>
-            Discover the best deals on your favorite products. Enjoy a seamless shopping experience with exclusive discounts and a beautiful, modern interface.
+ Enjoy a seamless shopping experience with exclusive discounts and a beautiful, modern interface.
           </p>
           <Link to="/products" style={styles.cta} className="popIn">Shop Now</Link>
         </div>
@@ -48,7 +48,7 @@ const styles = {
     gap: "4rem",
     width: "100vw",
     maxWidth: 1400,
-    padding: "60px 32px 0 32px",
+    padding: "10px 32px 0 32px",
     flexWrap: "wrap",
     animation: "fadeInUp 1s cubic-bezier(.4,0,.2,1)",
   },
@@ -58,6 +58,7 @@ const styles = {
     display: "flex",
     flexDirection: "column",
     alignItems: "flex-start",
+    paddingLeft:50,
     justifyContent: "center",
     gap: 24,
     animation: "fadeInUp 1.2s cubic-bezier(.4,0,.2,1)",
@@ -69,7 +70,7 @@ const styles = {
     fontSize: "1.3rem",
     borderRadius: 18,
     padding: "8px 28px",
-    marginBottom: 18,
+    marginBottom: 10,
     letterSpacing: 2,
     boxShadow: theme.shadow,
     animation: "popIn 0.7s cubic-bezier(.4,0,.2,1)",
@@ -92,7 +93,7 @@ const styles = {
   desc: {
     color: theme.text,
     fontSize: "1.2rem",
-    margin: "18px 0 32px 0",
+    margin: "1px 0 15px 0",
     maxWidth: 480,
     lineHeight: 1.5,
   },
@@ -108,7 +109,7 @@ const styles = {
     boxShadow: theme.shadow,
     cursor: "pointer",
     transition: "background 0.2s, transform 0.2s",
-    marginTop: 10,
+    marginTop: 0,
     display: "inline-block",
   },
   right: {

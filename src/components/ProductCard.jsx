@@ -10,7 +10,8 @@ export default function ProductCard({ product, onDelete, onEdit }) {
     const [showEdit, setShowEdit] = useState(false);
     const [editData, setEditData] = useState({ ...product });
 
-    const handleDeleteClick = () => {
+    const handleDeleteClick = (e) => {
+        e.stopPropagation();
         setShowConfirm(true);
     };
 
@@ -40,18 +41,41 @@ export default function ProductCard({ product, onDelete, onEdit }) {
         const { name, value } = e.target;
         setEditData(prev => ({ ...prev, [name]: value }));
     };
+
     const handleEditSave = async (e) => {
-        e.preventDefault();
-        setShowEdit(false);
-        // Update database
-        const dataToSend = { ...editData, price: Number(editData.price) };
-        await fetch(`https://shopcart-paisawapas.onrender.com/api/products/${product._id}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(dataToSend)
+  e.preventDefault();
+  setShowEdit(false);
+
+  // Exclude image field
+  const { image, ...rest } = editData;
+  const dataToSend = { ...rest, price: Number(editData.price) };
+
+  try {
+    const response = await fetch(`https://shopcart-paisawapas.onrender.com/api/products/${product._id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(dataToSend)  // 🚀 No image sent
+    });
+
+    if (response.ok) {
+      const updatedProduct = await response.json();
+
+      // Preserve old image if backend didn't return it
+      if (onEdit) {
+        onEdit({
+          ...updatedProduct,
+          _id: product._id,
+          image: product.image   // keep old one
         });
-        if (onEdit) onEdit(dataToSend);
-    };
+      }
+    } else {
+      alert("Failed to update product.");
+    }
+  } catch (err) {
+    alert("Error updating product.");
+  }
+};
+
     const handleEditCancel = () => setShowEdit(false);
 
     const truncatedDesc = product.description && product.description.length > MAX_DESC_LENGTH
@@ -59,12 +83,17 @@ export default function ProductCard({ product, onDelete, onEdit }) {
         : product.description;
     const showMore = product.description && product.description.length > MAX_DESC_LENGTH;
 
+    // Show product.price as original price, and 70% off as discounted price
+    const originalPrice = Math.round(Number(product.price));
+    const discountedPrice = Math.round(Number(product.price) * 0.3);
+
     return (
         <div
             style={styles.card}
             className="popIn"
             onClick={(e) => {
-                if (e.target.tagName !== 'BUTTON') handleViewClick();
+                // Only open details if not clicking on a button or inside a button
+                if (!(e.target.closest('button'))) handleViewClick();
             }}
         >
             <div style={styles.glassOverlay}></div>
@@ -83,11 +112,25 @@ export default function ProductCard({ product, onDelete, onEdit }) {
                     <span style={styles.more} onClick={handleViewClick}>more</span>
                   )}
                 </div>
-                <div style={styles.price}>${product.price}</div>
+                                <div style={{display:'flex',alignItems:'center',gap:8,margin:'8px 0'}}>
+                                    <span style={{color:theme.primary,fontWeight:800,fontSize:'1.13rem'}}>${discountedPrice}</span>
+                                    <span style={{textDecoration:'line-through',color:'#888',fontWeight:600,fontSize:'1.02rem',marginLeft:2}}>${originalPrice}</span>
+                                    <span style={{background:'#ffe500',color:'#1a8917',fontWeight:900,fontSize:'0.98rem',borderRadius:6,padding:'2px 8px',marginLeft:2,letterSpacing:0.5}}>70% off</span>
+                                </div>
                 <div style={styles.actions}>
                     {/* <button style={styles.viewBtn} onClick={handleViewClick}>View</button> */}
-                    <button style={styles.editBtn} onClick={handleEditClick}>Edit</button>
-                    <button style={styles.deleteBtn} onClick={handleDeleteClick}>Delete</button>
+                                        <button style={styles.editBtn} onClick={handleEditClick}>
+                                                <div style={{display:'flex'}}><span style={{display:'inline-flex',alignItems:'center',marginRight:6}}>
+                                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M16.474 5.425l2.101 2.1a1.2 1.2 0 0 1 0 1.697l-9.05 9.05a1 1 0 0 1-.47.263l-3.13.783a.5.5 0 0 1-.61-.61l.783-3.13a1 1 0 0 1 .263-.47l9.05-9.05a1.2 1.2 0 0 1 1.697 0zm-8.474 9.899l8.485-8.485-1.414-1.414-8.485 8.485-.553 2.21 2.21-.553z" stroke="#fff" strokeWidth="1.5" fill="none"/></svg>
+                                                </span>
+                                                <div>Edit</div></div>
+                                        </button>
+                                        <button style={styles.deleteBtn} onClick={handleDeleteClick}>
+                                                <div style={{display:'flex'}}><span style={{display:'inline-flex',alignItems:'center',marginRight:6}}>
+                                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="5" y="7" width="14" height="12" rx="2" stroke="#fff" strokeWidth="2"/><path d="M9 11v4M15 11v4" stroke="#fff" strokeWidth="2" strokeLinecap="round"/><path d="M10 7V5a2 2 0 0 1 2-2v0a2 2 0 0 1 2 2v2" stroke="#fff" strokeWidth="2" strokeLinecap="round"/><path d="M3 7h18" stroke="#fff" strokeWidth="2" strokeLinecap="round"/></svg>
+                                                </span>
+                                                <div>Delete</div></div>
+                                        </button>
                 </div>
             </div>
             {showConfirm && (
@@ -143,7 +186,6 @@ export default function ProductCard({ product, onDelete, onEdit }) {
                       <div style={styles.editRow}><label style={styles.editLabel}>Price</label><input name="price" value={editData.price} onChange={handleEditChange} style={styles.editInput} placeholder="Price" type="number" required /></div>
                       <div style={styles.editRow}><label style={styles.editLabel}>Category</label><input name="category" value={editData.category} onChange={handleEditChange} style={styles.editInput} placeholder="Category" required /></div>
                       <div style={styles.editRow}><label style={styles.editLabel}>Description</label><textarea name="description" value={editData.description} onChange={handleEditChange} style={{...styles.editInput, minHeight: 90, fontSize: '1.13rem'}} placeholder="Description" required /></div>
-                      <div style={styles.editRow}><label style={styles.editLabel}>Image URL</label><input name="image" value={editData.image} onChange={handleEditChange} style={styles.editInput} placeholder="Image URL" /></div>
                       <div style={{display: 'flex', gap: 18, marginTop: 32, justifyContent: 'center'}}>
                         <button style={styles.confirmBtn} type="submit">Save</button>
                         <button style={styles.cancelBtn} type="button" onClick={handleEditCancel}>Cancel</button>
@@ -184,24 +226,27 @@ const styles = {
         borderRadius: 22,
     },
     imageSection: {
-        background: theme.muted,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        height: 170,
-        borderBottom: `2px solid ${theme.accent}`,
-        minHeight: 170,
-        maxHeight: 170,
-        zIndex: 1,
+    background: theme.muted,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    height: 170,
+    borderBottom: `2px solid ${theme.accent}`,
+    minHeight: 170,
+    maxHeight: 170,
+    zIndex: 1,
+    width: "100%",
+    overflow: "hidden",
+    padding: 0,
     },
     image: {
-        maxWidth: 120,
-        maxHeight: 120,
-        borderRadius: 16,
-        objectFit: "cover",
-        boxShadow: "0 2px 12px rgba(67,160,71,0.10)",
-        background: "#fff",
-        margin: 12,
+    width: "100%",
+    height: "100%",
+    objectFit: "cover",
+    borderRadius: 0,
+    background: "#fff",
+    margin: 0,
+    display: "block",
     },
     infoSection: {
         flex: 1,
@@ -263,44 +308,33 @@ const styles = {
         justifyContent: "center",
         zIndex: 2,
     },
-    viewBtn: {
-        background: "linear-gradient(90deg, #43e97b 0%, #38f9d7 100%)",
-        color: "#1b3c23",
-        border: "none",
-        borderRadius: 16,
-        padding: "10px 28px",
-        fontWeight: 800,
-        fontSize: "1.08rem",
-        letterSpacing: 1,
-        cursor: "pointer",
-        boxShadow: "0 2px 8px rgba(67,160,71,0.10)",
-        transition: "background 0.2s, color 0.2s, transform 0.2s",
-    },
     editBtn: {
         background: 'linear-gradient(90deg, #6bd38eff 0%,  #55b174ff 100%)',
         color: '#fff',
         border: 'none',
         borderRadius: 16,
-        padding: '10px 28px',
-        fontWeight: 800,
+        padding: '10px 20px',
+        fontWeight: 600,
         fontSize: '1.08rem',
         letterSpacing: 1,
         cursor: 'pointer',
         boxShadow: '0 2px 8px rgba(67,160,71,0.13)',
         transition: 'background 0.2s, color 0.2s, transform 0.2s',
+        color:'#fff'
     },
     deleteBtn: {
         background: 'linear-gradient(90deg, #f15439ff 0%, #f02b2bff 100%)',
         color: 'whitesmoke',
         border: 'none',
         borderRadius: 16,
-        padding: '10px 28px',
-        fontWeight: 800,
+        padding: '10px 20px',
+        fontWeight: 600,
         fontSize: '1.08rem',
         letterSpacing: 1,
         cursor: 'pointer',
         boxShadow: '0 2px 8px rgba(67,160,71,0.13)',
         transition: 'background 0.2s, color 0.2s, transform 0.2s',
+        color:'#fff'
     },
     overlay: {
         position: "fixed",
