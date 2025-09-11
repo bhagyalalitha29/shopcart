@@ -60,7 +60,7 @@ export default function AddProductForm ({ onProductAdded }){
 
     return (
         <div style={{ maxHeight: "90vh", overflowY: "auto", scrollbarWidth: "none", msOverflowStyle: "none" }}>
-            <style>{`.add-product-form::-webkit-scrollbar { display: none; }`}</style>
+            <style>{`.add-product-form::-webkit-scrollbar { display: none; } @media (max-width: 700px) { .add-product-form { margin-bottom: 48px !important; }}`}</style>
             <div className="add-product-form" style={styles.formWrap}>
                 <h2 style={styles.heading}>Add New Product</h2>
                 {message && (

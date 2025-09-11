@@ -5,17 +5,61 @@ import "../animations.css";
 export default function Home() {
   return (
     <div
-      style={{
-        minHeight: "100vh",
-        width: "100vw",
-        background: `linear-gradient(135deg, ${theme.background} 0%, ${theme.accent} 100%)`,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        overflow: "hidden",
-      }}
-    >
-      <section style={styles.hero}>
+      <style>{`
+        .home-hero {
+          min-height: 100vh;
+          width: 100vw;
+          background: linear-gradient(135deg, #f5fef7 0%, #b7e4c7 100%);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          overflow: hidden;
+          padding: 0 0;
+        }
+        @media (max-width: 700px) {
+          .home-hero {
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 18px 0 32px 0;
+            min-height: 100vh;
+          }
+          .home-card {
+            width: 94vw !important;
+            min-width: unset !important;
+            max-width: 99vw !important;
+            margin: 0 auto 18px auto !important;
+            padding: 28px 10px 28px 10px !important;
+            border-radius: 18px !important;
+            box-shadow: 0 2px 16px rgba(67,160,71,0.10);
+          }
+          .home-cta {
+            width: 90vw !important;
+            min-width: unset !important;
+            padding: 16px 0 16px 0 !important;
+            font-size: 1.1rem !important;
+            border-radius: 14px !important;
+            margin-bottom: 18px !important;
+          }
+          .home-title {
+            font-size: 2.1rem !important;
+            text-align: center !important;
+          }
+          .home-subtitle {
+            font-size: 1.2rem !important;
+            text-align: center !important;
+          }
+          .home-desc {
+            font-size: 1.01rem !important;
+            text-align: center !important;
+          }
+          .home-badge {
+            margin: 0 auto 18px auto !important;
+            display: block !important;
+            font-size: 1.08rem !important;
+          }
+        }
+      `}</style>
         <div style={styles.left} className="fadeInUp">
           <div style={styles.badge} className="popIn">70% OFF</div>
           <h1 style={styles.title}>
