@@ -42,7 +42,6 @@ export default function TotalNav() {
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexGrow: 1 }}>
-                <Navbar />
                 <div style={styles.searchContainer}>
                     <div style={{ position: 'relative', width: '100%' }}>
                         <input
@@ -74,6 +73,7 @@ export default function TotalNav() {
                         )}
                     </div>
                 </div>
+                <Navbar />
             </div>
             <style>{`
                 .spinner-pro {

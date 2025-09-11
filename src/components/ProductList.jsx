@@ -203,6 +203,15 @@ const spinnerStyle = {
           background-position: right 14px center;
           background-size: 18px 18px;
         }
+
+        /* Responsive: 1 product per row, centered, on mobile */
+        @media (max-width: 700px) {
+          .fadeInUp {
+            grid-template-columns: 1fr !important;
+            justify-items: center;
+            padding: 10px 4vw 60px 4vw !important;
+          }
+        }
       `}</style>
     </div>
   );

@@ -17,3 +17,70 @@
   padding-right: 20px;
   font-weight: 500;
 }
+
+/* Hamburger styles */
+.hamburger {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 36px;
+  height: 36px;
+  cursor: pointer;
+  margin-right: 10px;
+  z-index: 1002;
+}
+.bar {
+  width: 28px;
+  height: 4px;
+  background: #265235;
+  margin: 3px 0;
+  border-radius: 2px;
+  transition: 0.3s;
+}
+.bar1.open {
+  transform: rotate(45deg) translate(5px, 5px);
+}
+.bar2.open {
+  opacity: 0;
+}
+.bar3.open {
+  transform: rotate(-45deg) translate(6px, -6px);
+}
+
+/* Responsive nav */
+.nav-links {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+@media (max-width: 700px) {
+  .hamburger {
+    display: flex;
+  }
+  .nav-links {
+    position: absolute;
+    top: 60px;
+    left: 0;
+    right: 0;
+    background: #f5fef7;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0;
+    padding: 18px 0 18px 18px;
+    box-shadow: 0 4px 16px rgba(67,160,71,0.08);
+    z-index: 1001;
+    display: none;
+  }
+  .nav-links.open {
+    display: flex;
+  }
+  .active-link, .inactive-link {
+    width: 100%;
+    padding: 14px 0 14px 18px;
+    border-bottom: 1px solid #e0ffe7;
+    margin: 0;
+    font-size: 1.13rem;
+  }
+}
