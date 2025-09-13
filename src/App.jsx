@@ -25,6 +25,7 @@ export default function App() {
             const response = await fetch(url);
             if (response.ok) {
                 const data = await response.json();
+                console.log('Fetching products app.jsx:', data);
                 setProducts(data);
                 setError('');
             } else {
@@ -54,6 +55,7 @@ export default function App() {
     };
 
     const handleProductEdited = (updatedProduct) => {
+        console.log('Updating product in App:', updatedProduct);
         setProducts(prev => prev.map(product => product._id === updatedProduct._id ? updatedProduct : product));
     };
     const spinnerOverlayStyle = {

@@ -10,6 +10,13 @@ export default function ProductCard({ product, onDelete, onEdit }) {
     const [showEdit, setShowEdit] = useState(false);
     const [editData, setEditData] = useState({ ...product });
 
+    // Ensure editData.image is always set when opening the edit form
+    const handleEditClick = (e) => {
+        e.stopPropagation();
+        setEditData({ ...product});
+        setShowEdit(true);
+    };
+
     const handleDeleteClick = (e) => {
         e.stopPropagation();
         setShowConfirm(true);
@@ -32,48 +39,42 @@ export default function ProductCard({ product, onDelete, onEdit }) {
         setShowConfirm(false);
     };
 
-    const handleEditClick = (e) => {
-        e.stopPropagation();
-        setEditData({ ...product });
-        setShowEdit(true);
-    };
+    // (moved above, see new version)
     const handleEditChange = (e) => {
         const { name, value } = e.target;
         setEditData(prev => ({ ...prev, [name]: value }));
+        console.log('edit data:',editData);
     };
 
     const handleEditSave = async (e) => {
-  e.preventDefault();
-  setShowEdit(false);
-
-  // Exclude image field
-  const { image, ...rest } = editData;
-  const dataToSend = { ...rest, price: Number(editData.price) };
-
-  try {
-    const response = await fetch(`https://shopcart-paisawapas.onrender.com/api/products/${product._id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(dataToSend)  // 🚀 No image sent
-    });
-
-    if (response.ok) {
-      const updatedProduct = await response.json();
-
-      // Preserve old image if backend didn't return it
-      if (onEdit) {
-        onEdit({
-          ...updatedProduct,
-          _id: product._id,
-          image: product.image   // keep old one
-        });
-      }
-    } else {
-      alert("Failed to update product.");
+    e.preventDefault();
+    if (!editData.image || editData.image.trim() === "") {
+        alert("Image URL is required.");
+        return;
     }
-  } catch (err) {
-    alert("Error updating product.");
-  }
+    setShowEdit(false);
+
+    const dataToSend = { ...editData, price: Number(editData.price) };
+    console.log('Submitting edit data:', dataToSend);
+    try {
+        const response = await fetch(`https://shopcart-paisawapas.onrender.com/api/products/${product._id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(dataToSend)
+        });
+
+        if (response.ok) {
+            const updatedProduct = await response.json();
+            console.log('Received updated product from server:', updatedProduct);
+            if (onEdit) {
+                onEdit({ ...updatedProduct, _id: product._id });
+            }
+        } else {
+            alert("Failed to update product.");
+        }
+    } catch (err) {
+        alert("Error updating product.");
+    }
 };
 
     const handleEditCancel = () => setShowEdit(false);
@@ -167,32 +168,22 @@ export default function ProductCard({ product, onDelete, onEdit }) {
                 </div>
             )}
             {showEdit && (
-                <div style={styles.overlay} className="fadeInUp">
-                  <div style={styles.editBoxWider}>
-                    <h2 style={{marginBottom: 18, color: theme.primary}}>Edit Product</h2>
-                    <form style={styles.editForm} onSubmit={async (e) => {
-                      e.preventDefault();
-                      setShowEdit(false);
-                      // Update database
-                      const dataToSend = { ...editData, price: Number(editData.price) };
-                      await fetch(`https://shopcart-paisawapas.onrender.com/api/products/${product._id}`, {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(dataToSend)
-                      });
-                      if (onEdit) onEdit(dataToSend);
-                    }}>
-                      <div style={styles.editRow}><label style={styles.editLabel}>Product Name</label><input name="name" value={editData.name} onChange={handleEditChange} style={styles.editInput} placeholder="Name" required /></div>
-                      <div style={styles.editRow}><label style={styles.editLabel}>Price</label><input name="price" value={editData.price} onChange={handleEditChange} style={styles.editInput} placeholder="Price" type="number" required /></div>
-                      <div style={styles.editRow}><label style={styles.editLabel}>Category</label><input name="category" value={editData.category} onChange={handleEditChange} style={styles.editInput} placeholder="Category" required /></div>
-                      <div style={styles.editRow}><label style={styles.editLabel}>Description</label><textarea name="description" value={editData.description} onChange={handleEditChange} style={{...styles.editInput, minHeight: 90, fontSize: '1.13rem'}} placeholder="Description" required /></div>
-                      <div style={{display: 'flex', gap: 18, marginTop: 32, justifyContent: 'center'}}>
-                        <button style={styles.confirmBtn} type="submit">Save</button>
-                        <button style={styles.cancelBtn} type="button" onClick={handleEditCancel}>Cancel</button>
-                      </div>
-                    </form>
-                  </div>
-                </div>
+                                <div style={styles.overlay} className="fadeInUp">
+                                    <div style={styles.editBoxWider}>
+                                        <h2 style={{marginBottom: 18, color: theme.primary}}>Edit Product</h2>
+                                        <form style={styles.editForm} onSubmit={handleEditSave}>
+                                                <div style={styles.editRow}><label style={styles.editLabel}>Product Name</label><input name="name" value={editData.name} onChange={handleEditChange} style={styles.editInput} placeholder="Name" required /></div>
+                                                <div style={styles.editRow}><label style={styles.editLabel}>Price</label><input name="price" value={editData.price} onChange={handleEditChange} style={styles.editInput} placeholder="Price" type="number" required /></div>
+                                                <div style={styles.editRow}><label style={styles.editLabel}>Category</label><input name="category" value={editData.category} onChange={handleEditChange} style={styles.editInput} placeholder="Category" required /></div>
+                                                <div style={styles.editRow}><label style={styles.editLabel}>Description</label><textarea name="description" value={editData.description} onChange={handleEditChange} style={{...styles.editInput, minHeight: 90, fontSize: '1.13rem'}} placeholder="Description" required /></div>
+                                            <div style={styles.editRow}><label style={styles.editLabel}>Image URL</label><input name="image" value={editData.image} onChange={handleEditChange} style={styles.editInput} placeholder="Image URL" required /></div>
+                                                <div style={{display: 'flex', gap: 18, marginTop: 32, justifyContent: 'center'}}>
+                                                        <button style={styles.confirmBtn} type="submit">Save</button>
+                                                        <button style={styles.cancelBtn} type="button" onClick={handleEditCancel}>Cancel</button>
+                                                </div>
+                                        </form>
+                                    </div>
+                                </div>
             )}
         </div>
     );

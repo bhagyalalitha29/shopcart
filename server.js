@@ -50,6 +50,7 @@ app.get("/api/products", async (req, res) => {
     }
     const products = await Product.find(query);
     res.json(products);
+    console.log('Fetched products:', products);
   } catch (error) {
     res.status(500).json({ message: "Error fetching products", error: error.message });
   }
@@ -82,11 +83,22 @@ app.post("/api/products", async (req, res) => {
 app.put("/api/products/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, price, description, category, image } = req.body;
-    console.log(req.body)
-    if (!name || !price || !description || !category || !image) {
-      return res.status(400).json({ message: "All fields are required" });
+    let { name, price, description, category, image } = req.body;
+    if (!name || !price || !description || !category) {
+      return res.status(400).json({ message: "All fields except image are required" });
     }
+
+    // Fetch the existing product
+    const existingProduct = await Product.findById(id);
+    if (!existingProduct) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+
+    // If image is empty or missing, keep the old image
+    if (!image || image.trim() === "") {
+      image = existingProduct.image;
+    }
+
     const updatedProduct = await Product.findByIdAndUpdate(
       id,
       {
@@ -94,13 +106,11 @@ app.put("/api/products/:id", async (req, res) => {
         price: parseFloat(price),
         description,
         category,
-        image:"",
+        image: image.trim(),
       },
       { new: true, runValidators: true }
     );
-    if (!updatedProduct) {
-      return res.status(404).json({ message: "Product not found" });
-    }
+    console.log(image);
     res.json(updatedProduct);
   } catch (error) {
     res.status(500).json({ message: "Error updating product", error: error.message });
